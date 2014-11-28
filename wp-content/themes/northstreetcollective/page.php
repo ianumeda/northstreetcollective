@@ -18,10 +18,12 @@
 
 <?php if ( have_posts() ) while ( have_posts() ) : the_post(); ?>
   <div class="row">
-    <div class="col-md-8 col-md-push-2 col-sm-10 col-sm-push-1 content article">
+    <div class="container content">
+      <!-- <div class="col-md-8 col-md-push-2 col-sm-10 col-sm-push-1 content article"> -->
           <div class="section_heading"><h2><?php the_title(); ?></h2></div>
             <?php the_content(); ?>
             <?php comments_template( '', true ); ?>
+      <!-- </div> -->
     </div>
   </div>
 <?php endwhile; ?>

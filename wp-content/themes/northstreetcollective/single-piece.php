@@ -16,7 +16,7 @@ if($parents=get_post_ancestors($post->ID)) {
   header( "Location: ".get_permalink($top_ancestor) );
 } else {
  ?>
-<?php Starkers_Utilities::get_template_parts( array( 'parts/shared/html-header', 'parts/shared/header' ) ); ?>
+<?php Starkers_Utilities::get_template_parts( array( 'parts/shared/html-header', 'parts/shared/header-piece' ) ); ?>
 <div id="art_presenter">
   <div id="presenter_container">
     <?php     
@@ -47,13 +47,15 @@ if($parents=get_post_ancestors($post->ID)) {
             	    echo '</h5>';
                   ?>
                 </div>
+                <?php remove_filter( 'the_content', 'sharing_display', 19 ); ?>
+                  <?php remove_filter( 'the_excerpt', 'sharing_display', 19 ); ?>
                 <?php the_content(); ?>
               </article>
         </div>
       </div>
-      <div class="page_controls">
+      <!-- <div class="page_controls">
         <div class="go_page_right btn btn-link">Next <span class="glyphicon glyphicon-arrow-right"></span></div>
-      </div>
+      </div> -->
     </div>
   <?php
     if(has_post_thumbnail( $post->ID ) ){
@@ -65,15 +67,9 @@ if($parents=get_post_ancestors($post->ID)) {
   <div id="art_page_<?php echo $pagenumber; ?>" class="col-xs-12 col-sm-9 col-md-7 art_page image_page page_<?php echo $pagenumber; ?>" page_number="<?php echo $pagenumber; ?>" style="background-image: url('<?php echo $imgurl; ?>')">
     <div class="art_content">
       <img src="<?php echo $imgurl; ?>" >
-      <img src="<?php echo $imgurl; ?>" >
-      <img src="<?php echo $imgurl; ?>" >
     </div>
   </div>
 
-  <?php 
-    } 
-    endwhile; 
-  ?>
   <?php
   $query = new WP_Query( array( 'post_type' => 'piece', 'post_parent' => $post->ID, 'posts_per_page' => '-1', 'offset' => '0', 'order' => 'ASC', 'orderby' => 'menu_order' ));
   if ( $query->have_posts() ) {
@@ -106,10 +102,10 @@ if($parents=get_post_ancestors($post->ID)) {
             </article>
           </div>
         </div>
-        <div class="page_controls">
+        <!-- <div class="page_controls">
           <div class="go_page_left btn btn-link"><span class="glyphicon glyphicon-arrow-left"></span> Previous</div>
           <div class="go_page_right btn btn-link">Next <span class="glyphicon glyphicon-arrow-right"></span></div>
-        </div>
+        </div> -->
       </div>
 
       <?php 
@@ -117,31 +113,95 @@ if($parents=get_post_ancestors($post->ID)) {
     }
   $pagenumber++;  
   ?>
-  
-  <div id="art_page_<?php echo $pagenumber; ?>" class="col-xs-10 col-sm-6 col-lg-4 art_page last_page page_<?php echo $pagenumber; ?>" page_number="<?php echo $pagenumber; ?>">
+  <?php wp_reset_postdata(); ?>
+  <div id="art_page_<?php echo $pagenumber; ?>" class="col-xs-8 col-sm-5 col-lg-3 art_page last_page page_<?php echo $pagenumber; ?>" page_number="<?php echo $pagenumber; ?>">
     <div class="row">
-      <div class="col-md-8 col-md-push-2 content">
+      <div class=" content">
         <article>
           <div class="section_heading">
             <h2>The End</h2>
           </div>
-          <ul>
-            <li>Back to the beginning</li>
-            <li>Go back to the show</li>
-            <li>Here are the other artworks in this show</li>
-            <li>Here is/are the artist(s) that made this piece. Go to the artist page(s)</li>
-            <li>go to the next art piece</li>
-            <li>go to the last art piece</li>
-            <li>Share this page on social media</li>
-            <li>Get involved: Come see this artwork. Donate to North Street Collective for art like this.</li>
-          </ul>
+          <div class="row">
+            <h6>The artist(s):</h6>
+            <?php 
+            $arts_artists=get_arts_artists($post->ID);
+            if(!empty($arts_artists)){
+              foreach($arts_artists as $artistID){
+            ?>
+            <div class="col-xs-12 post_preview">
+              <h4 class="artist_name"><?php echo display_name_format( get_the_title($artistID) ); ?></h4>
+              <a class="post_preview_link link_overlay" href="<?php echo get_permalink($artistID); ?>" alt="goto <?php echo display_name_format( get_the_title($artistID) ); ?>&apos;s page"><span class="glyphicon glyphicon-chevron-right"></span></a>
+            </div>
+            <?php
+              }
+      	    } else {?>
+              <div class="col-xs-12 alert alert-warning">No associated artists</div>
+            <?php 
+            }
+            ?>
+
+
+            <h6>This piece featured in:</h6>
+            <?php 
+            $arts_shows=get_arts_shows($post->ID);
+            if(!empty($arts_shows)){
+        	    foreach($arts_shows as $showID){
+            ?>
+
+            <div class="col-xs-12 post_preview">
+      		    <h4><?php echo get_the_title($showID); ?></h4>
+              <a href="<?php echo get_permalink($showID); ?>" class="post_preview_link link_overlay"><span class="glyphicon glyphicon-chevron-right"></span></a>
+            </div>
+
+            <?php
+              }              
+            } else {
+              ?>
+              <div class="col-xs-12 alert alert-warning">No associated show</div>
+              <?php
+            }
+            ?>
+
+            <h4>Other artworks in this show:</h4>
+            <?php 
+            $art_posts=get_shows_art($showpost->ID); // gets array of associated art posts
+          	foreach ( $art_posts as $artID ) {
+              if($artID!=$post->ID){
+            ?>
+            <div class="col-xs-12 post_preview">
+        		    <h4><?php echo get_the_title($artID); ?> </h4>
+                <a href="<?php echo get_permalink($artID); ?>" class="post_preview_link link_overlay"><span class="glyphicon glyphicon-chevron-right"></span></a>
+            </div>
+            <?php
+              }
+        		}
+            ?>
+            <h6>Share this page on social media</h6>
+            <p>
+              <?php echo sharing_display(); ?> 
+            </p>
+            
+            <h6>Get involved</h6>
+            <div class="col-xs-12 post_preview">
+        		    <h4>Come see this artwork</h4>
+                <a href="http://northstreetcollective.org/contact/" class="post_preview_link link_overlay"><span class="glyphicon glyphicon-chevron-right"></span></a>
+            </div>
+            <div class="col-xs-12 post_preview">
+        		    <h4>Donate to North Street Collective for art like this</h4>
+                <a href="http://northstreetcollective.org/contact/" class="post_preview_link link_overlay"><span class="glyphicon glyphicon-chevron-right"></span></a>
+            </div>
+            
         </article>
       </div>
     </div>
-    <div class="page_controls">
+  <?php 
+    } 
+    endwhile; 
+  ?>
+    <!-- <div class="page_controls">
       <div class="go_page_left btn btn-link"><span class="glyphicon glyphicon-arrow-left"></span> Previous</div>
       <div class="go_page_right btn btn-link"><span class="glyphicon glyphicon-fast-backward"></span> to the beginning</div>
-    </div>
+    </div> -->
   </div>
   
 </div><!-- .presenter_container -->
@@ -176,26 +236,26 @@ function gotopage(pagenumber, direction){
   // alert("active_page_number="+active_page_number);
 }
 function set_art_presenter_height(){
-  var topnavoffset=$("#main_navigation").offset();
+  var topnavoffset=$("header").offset();
   var available_vertical_space=$(window).height()-( topnavoffset.top + $("#main_navigation").outerHeight());
   $('#art_presenter').css({"height":available_vertical_space+"px"});
   // alert("set_art_presenter_height: "+$(window).height()+" - ("+topnavoffset.top+" + "+$("#main_navigation").outerHeight()+") = "+available_vertical_space);
 }
 
 $('.go_page_left').click(function(){
-  if($(this).parent().parent().hasClass("active")){
+  // if($(this).parent().parent().hasClass("active")){
+    gotopage(null,'prev');
     event.stopPropagation();
     // active_page_number = (active_page_number>0 ? active_page_number-1 : 0);
-    gotopage(null,'prev');
     // alert('active_page_number='+active_page_number);
-  }
+  // }
 });
 $('.go_page_right').click(function(){
-  if($(this).parent().parent().hasClass("active")){
-    event.stopPropagation();
+  // if($(this).parent().parent().hasClass("active")){
     // active_page_number = (active_page_number<number_of_pages ? active_page_number+1 : 0);
     gotopage(null,'next');
-  }
+    event.stopPropagation();
+  // }
 });
 $('.art_page').click(function(){
   // active_page_number=$(this).attr("page_number");
@@ -217,12 +277,11 @@ $(document).ready(function(){
   gotopage();
   set_art_presenter_height();
 });
-$(window).resize(function() {
-  if(throttle_on_resize()){
-    gotopage();
-    set_art_presenter_height();
-  }  
-});
+// the following is handled in site.js
+// $(window).resize(function() {
+//   on_resize(false);
+// });
+
 
 </script>
 <?php Starkers_Utilities::get_template_parts( array( 'parts/shared/footer-art','parts/shared/html-footer' ) ); ?>

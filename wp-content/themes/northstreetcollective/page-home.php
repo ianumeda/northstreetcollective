@@ -93,26 +93,6 @@
       </button>
     </div><!-- #news -->
   </div>
-  <div id="spotlight" class="content col-md-4">
-    <div class="section_heading"><h3>On The Horizon</h3></div>
-    <?php
-      $query = new WP_Query( array( 'category_name' => 'horizon', 'posts_per_page' => '3' ));
-      if ( $query->have_posts() ) {
-      	while ( $query->have_posts() ) {
-      		$query->the_post();
-      		echo '<div class="horizon">';
-      		echo '<h4>' . get_the_title() . '</h4>';
-      		echo get_preview_image();
-      		the_excerpt();
-      		echo '<button type="button" class="btn btn-link btn-block btn-xs"><a class="post_preview_link" href=' . get_permalink($post->ID) . '>Read more <span class="glyphicon glyphicon-chevron-right"></span></a></button>';
-      		echo '</div>';
-      	}
-      } else { ?>
-      	<div class="alert alert-danger">Content not found.</div>
-      <?php }
-      wp_reset_postdata();
-    ?>
-  </div>
 </div>
 
 <?php Starkers_Utilities::get_template_parts( array( 'parts/shared/footer','parts/shared/html-footer' ) ); ?>

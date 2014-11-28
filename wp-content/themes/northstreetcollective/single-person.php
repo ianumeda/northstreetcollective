@@ -13,57 +13,51 @@
 
 <?php if ( have_posts() ) while ( have_posts() ) : the_post(); ?>
   <?php $roles=wp_get_post_terms($post->ID, 'role', array("fields" => "slugs")); ?>
-<div class="row">
-    <div class="col-md-10 col-md-push-1 content person_page <?php echo $roles[0]; ?>">
+<div class="container">
+    <div class="content person_page <?php echo $roles[0]; ?>">
       <div class="row">
-        <div class="col-xs-8">
-          <article>
           <div class="section_heading">
-            <?php echo '<span class="preheading">'.$roles[0]." : </span>"; ?>
             <h2><?php echo display_name_format(get_the_title()); ?></h2>
-          </div>
-          <?php the_content(); ?>
-          <?php
-          if (has_post_thumbnail( $post->ID ) ){
-            $artist_mugshot = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'single-post-thumbnail' ); 
-          }
-          // get the artists associated artwork by querying art with this person id
-          // $my_artwork=get_posts( array( 'post_type'=>'piece', 'post_per_page'=>-1, 'tax_query' => array( array( 'taxonomy' => 'person', 'field' => 'slug', 'terms' => array($post->post_name) ) ) ) );
-          ?>
-          <?php if( $roles[0]=='artist' || $roles[0]=='apprentice') { ?>
-          <div class="section_heading"><h3>Artwork:</h3></div>
-          <ul class="artists_art_list">
-          <?php 
-          $all_art=get_posts( array('post_type'=>'piece', 'posts_per_page'=>-1) );
-          $all_shows=get_posts( array('post_type'=>'show', 'posts_per_page'=>-1) );
-          foreach($all_art as $piece){
-        	    $arts_artists=get_the_terms($piece->ID, 'person');
-          		if($arts_artists && !is_wp_error( $arts_artists )){
-                foreach($arts_artists as $artist){
-                  if($artist->slug == $post->post_name){
-                    echo '<li><a href="'.get_permalink($piece->ID).'">'.$piece->post_title.'</a>';
-                    foreach($all_shows as $show){
-                      $shows_art=get_the_terms($show->ID,'piece');
-                      if($shows_art && !is_wp_error( $shows_art) ){
-                        foreach($shows_art as $show_art){
-                          if($show_art->slug == $piece->post_name){
-                            echo ' : <a href="'.get_permalink($show->ID).'">'.$show->post_title.'</a>';
-                          }
-                        }
-                      }
-                    }
-                    echo '</li>';          
+            <span class="subheading">
+              <div class="roles">
+              <?php 
+              foreach($roles as $role){
+                echo $role;
+                echo ($role==$roles[count($roles)-1]) ? "" : ", ";
+              }
+              ?>
+              </div>
+              <?php
+              // the following collects the class names that this person is associated with
+              $my_classes=array();
+              $all_classes = get_posts( array( 'post_type' => 'class', 'posts_per_page' => '0', 'offset' => '0', 'order' => 'DESC', 'orderby' => 'date'));
+              foreach($all_classes as $class){
+                $class_people=get_the_terms($class, 'person');
+                foreach($class_people as $this_person){
+                  if($post->ID == $this_person->term_id){
+                    $my_classes[]=get_the_title($class);
                   }
                 }
-          		}
-          }
-          ?>  
-            </ul>
-            <? } // end if (is artist) ?>
-          </article>
-        </div>
-        <div class="col-xs-4">
+              }
+              if(!empty($my_classes)){ ?>
+                
+                <div class="classes">
+
+                <?php
+                  foreach($my_classes as $class){
+                  echo $class;
+                  echo ($class==$my_classes[count($my_classes)-1] ? "" : ", ");
+                }
+                ?>
+                </div>
+              <?php } ?>
+              </span>
+          </div>
+        <div class="col-sm-4 col-sm-push-8 col-xs-12">
           <?php
+            if (has_post_thumbnail( $post->ID ) ){
+              $artist_mugshot = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'single-post-thumbnail' ); 
+            }
             if ($artist_mugshot){
               $imgurl=$artist_mugshot[0];
               echo '<div class="image headshot"><img src="'. $imgurl .'"></div>';
@@ -72,19 +66,41 @@
             }
           ?>
         </div>
+        <div class="col-sm-8 col-sm-pull-4 col-xs-12">
+          <article>
+          <?php the_content(); ?>
+          </article>
+        </div>
+      </div>
+      <div class="row">
+        
+        <?php if( in_array( 'artist' , $roles ) || in_array('apprentice', $roles) ) { ?>
+        <div class="section_heading"><h3>Artwork:</h3></div>
+        <div class="artists_art_list">
+        <?php 
+        $artists_artwork=get_artists_art($post->ID);
+        foreach($artists_artwork as $artwork_id){ 
+          $piece=get_post($artwork_id);
+          ?>
+          <div class="post_preview">
+            <h5><?php echo $piece->post_title; ?></h5>
+            <a class="post_preview_link link_overlay" href="<?php echo get_permalink($piece->ID); ?>" alt="<?php echo $piece->post_title; ?>"><span class="glyphicon glyphicon-chevron-right"></span></a>
+          </div>
+        <?php } ?>
+        <?php } // end if (is artist) ?>
       </div>
     </div>
   </div>
 
 
 <?php endwhile; ?>
-<div class="row">
-  <h3 class="section_heading">Browse People:</h3>
-<ul class="pager">
-  <li><?php previous_post_link('%link', '<span class="glyphicon glyphicon-arrow-left"></span> %title'); ?></li>
-  <li><?php next_post_link('%link', '%title <span class="glyphicon glyphicon-arrow-right"></span>'); ?></li>
-</ul>
-</div>
-
+  <div class="row">
+    <h3 class="section_heading">Browse People:</h3>
+      <ul class="pager">
+        <li><?php previous_post_link('%link', '<span class="glyphicon glyphicon-arrow-left"></span> %title'); ?></li>
+        <li><?php next_post_link('%link', '%title <span class="glyphicon glyphicon-arrow-right"></span>'); ?></li>
+      </ul>
+    </div>
+  </div>
 
 <?php Starkers_Utilities::get_template_parts( array( 'parts/shared/footer','parts/shared/html-footer' ) ); ?>

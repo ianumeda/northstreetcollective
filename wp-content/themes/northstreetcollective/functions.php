@@ -194,13 +194,15 @@ function get_artists_art($personID){
   $all_art=get_posts( array('post_type'=>'piece', 'posts_per_page'=>-1) );
   foreach($all_art as $piece){
     $arts_artists=get_arts_artists($piece->ID);
-    foreach($arts_artists as $artist){
-      $artist_post=get_post($artist);
-      if($artist_post->name == $person_post->name){
-        // then we have a match
-        $artists_art_postID_list[]=$piece->ID;
-      }
-  	}
+    if(!empty($arts_artists)){
+      foreach($arts_artists as $artistID){
+        if($personID == $artistID){
+          // echo '<!-- '. $personID .'=='. $artistID .', add piece: '. $piece->ID. ' -->';
+          // then we have a match
+          $artists_art_postID_list[]=$piece->ID;
+        }
+    	}
+    }
   }
   return $artists_art_postID_list;
 }
@@ -221,7 +223,19 @@ function get_arts_shows($artID){
   }
   return $arts_show_postID_list;
 }
-function get_shows_artists($showID){ }
+function get_shows_artists($showID){
+  $list_of_artist_ids=array();
+  $shows_art_list=get_shows_art($showID);
+  foreach($shows_art_list as $art_piece){
+    $arts_artists=get_arts_artists($art_piece);
+    foreach($arts_artists as $artist){
+      if(!in_array($artist,$list_of_artist_ids)){
+        array_push($list_of_artist_ids, $artist);
+      }
+    }
+  }
+  return $list_of_artist_ids;
+}
 
 add_action( 'init', 'create_people_taxonomies', 0 );
 
@@ -250,6 +264,7 @@ function create_people_taxonomies() {
 	);
 
   register_taxonomy( 'role', array( 'people' ), $args );
+
 
 }
 

@@ -1,5 +1,5 @@
-<header id="header" class="cbp-af">
-  <div class="cbp-af-header">
+<header id="header" class="cbp-af-shrunken">
+  <div class="cbp-af-header cbp-af-header-shrink">
     <div class="cbp-af-inner container">
       <div class="row">
         <div class="col-xs-3">
